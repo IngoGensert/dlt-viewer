@@ -607,7 +607,7 @@ bool NonverbosePlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     }
     else
     {
-        // message id is in the payload in the first four bytes
+        // Start non-verbose decoding at byte 9
         offset = 9;
     }
 
