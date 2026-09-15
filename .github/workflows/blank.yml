@@ -1,0 +1,52 @@
+name: Build nonverboseplugin
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Windows plugin
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install Qt 5.15.2
+        uses: jurplel/install-qt-action@v4
+        with:
+          mirror: http://ftp.fau.de/qtproject/
+          version: 5.15.2
+
+      - name: Build DLT Viewer
+        shell: powershell
+        run: |
+          $env:WORKSPACE=$env:GITHUB_WORKSPACE
+          $env:QTDIR=$env:Qt5_DIR.Replace('/','\')
+          $env:CPACK_7Z="true"
+          $env:CPACK_NSIS="true"
+          .\build_sdk_windows_qt5_MSVC_cmake.bat
+
+      - name: Collect nonverboseplugin.dll
+        shell: powershell
+        run: |
+          $dll = Get-ChildItem -Path . -Recurse -Filter nonverboseplugin.dll | Select-Object -First 1
+
+          if (-not $dll) {
+              throw "nonverboseplugin.dll was not found!"
+          }
+
+          Write-Host "Found DLL:"
+          Write-Host $dll.FullName
+
+          New-Item -ItemType Directory -Force -Path artifact | Out-Null
+          Copy-Item $dll.FullName artifact\nonverboseplugin.dll
+
+      - name: Upload nonverboseplugin.dll
+        uses: actions/upload-artifact@v4
+        with:
+          name: nonverboseplugin-offset9
+          path: artifact/nonverboseplugin.dll
