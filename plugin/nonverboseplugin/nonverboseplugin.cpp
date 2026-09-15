@@ -608,7 +608,7 @@ bool NonverbosePlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     else
     {
         // message id is in the payload in the first four bytes
-        offset = 4;
+        offset = 9;
     }
 
     /* Look for all PDUs for this message */
