@@ -540,34 +540,17 @@ bool MessageIDPlugin::isMsg(QDltMsg &msg, int triggeredByUser)
 bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
 {
     Q_UNUSED(triggeredByUser)
-    int offset = 0;
 
-    if((msg.getMode() != QDltMsg::DltModeNonVerbose))
-    {
-        /* message is not a non-verbose message */
-        return false;
-    }
-    if((msg.getType() == QDltMsg::DltTypeControl))
-    {
-        /* message is a control message */
-        return false;
-    }
+    int offset = 9;
 
     QString idtext = QString("ID_%1").arg(msg.getMessageId());
-    DltFibexFrame *frame;
-    if(!msg.getApid().isEmpty() && !msg.getCtid().isEmpty())
-    {
-        // search in full key, if msg already contains AppId and CtId
-        frame = framemapwithkey.value(DltFibexKey(idtext,msg.getApid(),msg.getCtid()),0);
-    }
-    else
-    {
-        // search only for id
-        frame = framemap.value(idtext,0);
-    }
-    if(!frame)
-            return false;
 
+    // Select FIBEX frame only by received Message ID
+    DltFibexFrame *frame = framemap.value(idtext, 0);
+
+    if(!frame)
+        return false;
+    
     /* set message data */
 
     // set ApId only if it is empty
@@ -582,18 +565,6 @@ bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     msg.setType((QDltMsg::DltTypeDef)(frame->messageType));
     msg.setSubtype(frame->messageInfo);
     QByteArray payload = msg.getPayload();
-
-    // starting offset depends on DLT protocol version
-    if(msg.getVersionNumber()==2)
-    {
-        // offset is 0, as message id is already in the header
-        offset = 0;
-    }
-    else
-    {
-        // Start non-verbose decoding at byte 9
-        offset = 9;
-    }
 
     /* Look for all PDUs for this message */
     for (int i=0;i < frame->pdureflist.size();i++)
