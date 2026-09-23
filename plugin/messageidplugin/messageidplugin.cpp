@@ -35,35 +35,35 @@ extern const char *control_type[];
 extern const char *service_id[];
 extern const char *return_type[];
 
-MessageIDPlugin::MessageIDPlugin()
+MessageIdPlugin::MessageIdPlugin()
 {
     dltControl = 0;
 }
 
-QString MessageIDPlugin::name()
+QString MessageIdPlugin::name()
 {
     return QString(MESSAGE_ID_PLUGIN_NAME);
 }
 
-QString MessageIDPlugin::pluginVersion(){
+QString MessageIdPlugin::pluginVersion(){
     return NON_VERBOSE_PLUGIN_VERSION;
 }
 
-QString MessageIDPlugin::pluginInterfaceVersion(){
+QString MessageIdPlugin::pluginInterfaceVersion(){
     return PLUGIN_INTERFACE_VERSION;
 }
 
-QString MessageIDPlugin::description()
+QString MessageIdPlugin::description()
 {
     return QString();
 }
 
-QString MessageIDPlugin::error()
+QString MessageIdPlugin::error()
 {
     return m_error_string;
 }
 
-bool MessageIDPlugin::loadConfig(QString filename)
+bool MessageIdPlugin::loadConfig(QString filename)
 {
    /* remove all stored items */
    m_error_string.clear();
@@ -99,7 +99,7 @@ bool MessageIDPlugin::loadConfig(QString filename)
     }
 }
 
-void MessageIDPlugin::clear()
+void MessageIdPlugin::clear()
 {
     foreach(DltFibexPdu *pdu, pdumap)
         delete pdu;
@@ -111,7 +111,7 @@ void MessageIDPlugin::clear()
     framemap.clear();
 }
 
-bool MessageIDPlugin::parseFile(QString filename)
+bool MessageIdPlugin::parseFile(QString filename)
 {
     bool ret = true;
 
@@ -497,12 +497,12 @@ bool MessageIDPlugin::parseFile(QString filename)
     return ret;
 }
 
-bool MessageIDPlugin::saveConfig(QString /*filename*/)
+bool MessageIdPlugin::saveConfig(QString /*filename*/)
 {
     return true;
 }
 
-QStringList MessageIDPlugin::infoConfig()
+QStringList MessageIdPlugin::infoConfig()
 {
     QStringList list;
 
@@ -528,29 +528,62 @@ QStringList MessageIDPlugin::infoConfig()
     return list;
 }
 
-bool MessageIDPlugin::isMsg(QDltMsg &msg, int triggeredByUser)
-{
-     Q_UNUSED(triggeredByUser)
-
-    QString idtext = QString("ID_%1").arg(msg.getMessageId());
-
-    return framemap.contains(idtext);
-}
-
-bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
+bool MessageIdPlugin::isMsg(QDltMsg &msg, int triggeredByUser)
 {
     Q_UNUSED(triggeredByUser)
 
-    int offset = 9;
+    if((msg.getMode() != QDltMsg::DltModeNonVerbose))
+    {
+        /* message is not a non-verbose message */
+        return false;
+    }
+    if((msg.getType() == QDltMsg::DltTypeControl))
+    {
+        /* message is a control message */
+        return false;
+    }
 
     QString idtext = QString("ID_%1").arg(msg.getMessageId());
 
-    // Select FIBEX frame only by received Message ID
-    DltFibexFrame *frame = framemap.value(idtext, 0);
+    if(!msg.getApid().isEmpty() && !msg.getCtid().isEmpty())
+        // search in full key, if msg already contains AppId and CtId
+        return framemapwithkey.contains(DltFibexKey(idtext,msg.getApid(),msg.getCtid()));
+    else
+        // search only for id
+        return framemap.contains(idtext);
+}
 
-    if(!frame)
+bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
+{
+    Q_UNUSED(triggeredByUser)
+    int offset = 0;
+
+    if((msg.getMode() != QDltMsg::DltModeNonVerbose))
+    {
+        /* message is not a non-verbose message */
         return false;
-    
+    }
+    if((msg.getType() == QDltMsg::DltTypeControl))
+    {
+        /* message is a control message */
+        return false;
+    }
+
+    QString idtext = QString("ID_%1").arg(msg.getMessageId());
+    DltFibexFrame *frame;
+    if(!msg.getApid().isEmpty() && !msg.getCtid().isEmpty())
+    {
+        // search in full key, if msg already contains AppId and CtId
+        frame = framemapwithkey.value(DltFibexKey(idtext,msg.getApid(),msg.getCtid()),0);
+    }
+    else
+    {
+        // search only for id
+        frame = framemap.value(idtext,0);
+    }
+    if(!frame)
+            return false;
+
     /* set message data */
 
     // set ApId only if it is empty
@@ -565,6 +598,18 @@ bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     msg.setType((QDltMsg::DltTypeDef)(frame->messageType));
     msg.setSubtype(frame->messageInfo);
     QByteArray payload = msg.getPayload();
+
+    // starting offset depends on DLT protocol version
+    if(msg.getVersionNumber()==2)
+    {
+        // offset is 0, as message id is already in the header
+        offset = 0;
+    }
+    else
+    {
+        // Start non-verbose decoding at byte 9
+        offset = 9;
+    }
 
     /* Look for all PDUs for this message */
     for (int i=0;i < frame->pdureflist.size();i++)
@@ -614,24 +659,24 @@ bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     return true;
 }
 
-bool MessageIDPlugin::initControl(QDltControl *control)
+bool MessageIdPlugin::initControl(QDltControl *control)
 {
     dltControl = control;
 
     return true;
 }
 
-bool MessageIDPlugin::initConnections(QStringList)
+bool MessageIdPlugin::initConnections(QStringList)
 {
     return false;
 }
 
-bool MessageIDPlugin::controlMsg(int , QDltMsg &)
+bool MessageIdPlugin::controlMsg(int , QDltMsg &)
 {
     return false;
 }
 
-bool MessageIDPlugin::stateChanged(int index, QDltConnection::QDltConnectionState connectionState,QString hostname){
+bool MessageIdPlugin::stateChanged(int index, QDltConnection::QDltConnectionState connectionState,QString hostname){
 
     Q_UNUSED(index);
     Q_UNUSED(connectionState);
@@ -639,25 +684,25 @@ bool MessageIDPlugin::stateChanged(int index, QDltConnection::QDltConnectionStat
     return false;
 }
 
-bool MessageIDPlugin::autoscrollStateChanged(bool enabled)
+bool MessageIdPlugin::autoscrollStateChanged(bool enabled)
 {
     Q_UNUSED(enabled);
     return false;
 }
 
-void MessageIDPlugin::initMessageDecoder(QDltMessageDecoder* pMessageDecoder)
+void MessageIdPlugin::initMessageDecoder(QDltMessageDecoder* pMessageDecoder)
 {
     Q_UNUSED(pMessageDecoder);
 }
 
-void MessageIDPlugin::initMainTableView(QTableView* pTableView)
+void MessageIdPlugin::initMainTableView(QTableView* pTableView)
 {
     Q_UNUSED(pTableView);
 }
 
-void MessageIDPlugin::configurationChanged()
+void MessageIdPlugin::configurationChanged()
 {}
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-Q_EXPORT_PLUGIN2(messageidplugin, MessageIDPlugin);
+Q_EXPORT_PLUGIN2(messageidplugin, MessageIdPlugin);
 #endif
