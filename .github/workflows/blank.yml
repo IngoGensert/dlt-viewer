@@ -1,4 +1,4 @@
-name: Build nonverboseplugin
+name: Build messageidplugin
 
 on:
   workflow_dispatch:
@@ -30,23 +30,23 @@ jobs:
           $env:CPACK_NSIS="true"
           .\build_sdk_windows_qt5_MSVC_cmake.bat
 
-      - name: Collect nonverboseplugin.dll
+      - name: Collect messageidplugin.dll
         shell: powershell
         run: |
-          $dll = Get-ChildItem -Path . -Recurse -Filter nonverboseplugin.dll | Select-Object -First 1
+          $dll = Get-ChildItem -Path . -Recurse -Filter messageidplugin.dll | Select-Object -First 1
 
           if (-not $dll) {
-              throw "nonverboseplugin.dll was not found!"
+              throw "messageidplugin.dll was not found!"
           }
 
           Write-Host "Found DLL:"
           Write-Host $dll.FullName
 
           New-Item -ItemType Directory -Force -Path artifact | Out-Null
-          Copy-Item $dll.FullName artifact\nonverboseplugin.dll
+          Copy-Item $dll.FullName artifact\messageidplugin.dll
 
-      - name: Upload nonverboseplugin.dll
+      - name: Upload messageidplugin.dll
         uses: actions/upload-artifact@v4
         with:
-          name: nonverboseplugin-offset9
-          path: artifact/nonverboseplugin.dll
+          name: messageidplugin-offset9
+          path: artifact/messageidplugin.dll
