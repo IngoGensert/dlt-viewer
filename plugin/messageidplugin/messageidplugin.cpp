@@ -46,7 +46,7 @@ QString MessageIdPlugin::name()
 }
 
 QString MessageIdPlugin::pluginVersion(){
-    return NON_VERBOSE_PLUGIN_VERSION;
+    return MESSAGE_ID_PLUGIN_VERSION;
 }
 
 QString MessageIdPlugin::pluginInterfaceVersion(){
