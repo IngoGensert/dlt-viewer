@@ -530,27 +530,11 @@ QStringList MessageIDPlugin::infoConfig()
 
 bool MessageIDPlugin::isMsg(QDltMsg &msg, int triggeredByUser)
 {
-    Q_UNUSED(triggeredByUser)
-
-    if((msg.getMode() != QDltMsg::DltModeNonVerbose))
-    {
-        /* message is not a non-verbose message */
-        return false;
-    }
-    if((msg.getType() == QDltMsg::DltTypeControl))
-    {
-        /* message is a control message */
-        return false;
-    }
+     Q_UNUSED(triggeredByUser)
 
     QString idtext = QString("ID_%1").arg(msg.getMessageId());
 
-    if(!msg.getApid().isEmpty() && !msg.getCtid().isEmpty())
-        // search in full key, if msg already contains AppId and CtId
-        return framemapwithkey.contains(DltFibexKey(idtext,msg.getApid(),msg.getCtid()));
-    else
-        // search only for id
-        return framemap.contains(idtext);
+    return framemap.contains(idtext);
 }
 
 bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
