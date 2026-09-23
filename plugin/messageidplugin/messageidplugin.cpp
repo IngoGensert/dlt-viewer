@@ -12,7 +12,7 @@
  * Mozilla Public License, v. 2.0. If a  copy of the MPL was not distributed with
  * this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * \file nonverboseplugin.cpp
+ * \file messageidplugin.cpp
  * For further information see http://www.covesa.global/.
  * @licence end@
  */
@@ -23,7 +23,7 @@
 #include <QDebug>
 #include <QProgressDialog>
 
-#include "nonverboseplugin.h"
+#include "messageidplugin.h"
 #include "dlt_protocol.h"
 #include "dlt_user.h"
 
@@ -35,35 +35,35 @@ extern const char *control_type[];
 extern const char *service_id[];
 extern const char *return_type[];
 
-NonverbosePlugin::NonverbosePlugin()
+MessageIDPlugin::MessageIDPlugin()
 {
     dltControl = 0;
 }
 
-QString NonverbosePlugin::name()
+QString MessageIDPlugin::name()
 {
-    return QString(NON_VERBOSE_PLUGIN_NAME);
+    return QString(MESSAGE_ID_PLUGIN_NAME);
 }
 
-QString NonverbosePlugin::pluginVersion(){
+QString MessageIDPlugin::pluginVersion(){
     return NON_VERBOSE_PLUGIN_VERSION;
 }
 
-QString NonverbosePlugin::pluginInterfaceVersion(){
+QString MessageIDPlugin::pluginInterfaceVersion(){
     return PLUGIN_INTERFACE_VERSION;
 }
 
-QString NonverbosePlugin::description()
+QString MessageIDPlugin::description()
 {
     return QString();
 }
 
-QString NonverbosePlugin::error()
+QString MessageIDPlugin::error()
 {
     return m_error_string;
 }
 
-bool NonverbosePlugin::loadConfig(QString filename)
+bool MessageIDPlugin::loadConfig(QString filename)
 {
    /* remove all stored items */
    m_error_string.clear();
@@ -99,7 +99,7 @@ bool NonverbosePlugin::loadConfig(QString filename)
     }
 }
 
-void NonverbosePlugin::clear()
+void MessageIDPlugin::clear()
 {
     foreach(DltFibexPdu *pdu, pdumap)
         delete pdu;
@@ -111,7 +111,7 @@ void NonverbosePlugin::clear()
     framemap.clear();
 }
 
-bool NonverbosePlugin::parseFile(QString filename)
+bool MessageIDPlugin::parseFile(QString filename)
 {
     bool ret = true;
 
@@ -129,7 +129,7 @@ bool NonverbosePlugin::parseFile(QString filename)
     DltFibexPdu *pdu = 0;
     DltFibexFrame *frame = 0;
 
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Start loading Fibex XML " << filename;
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Start loading Fibex XML " << filename;
 
     QXmlStreamReader xml(&file);
 
@@ -462,7 +462,7 @@ bool NonverbosePlugin::parseFile(QString filename)
 
     file.close();
 
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Finish loading Fibex XML.";
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Finish loading Fibex XML.";
 
     if (warning_text.length()){
         warning_text.chop(2); // remove last ", "
@@ -470,7 +470,7 @@ bool NonverbosePlugin::parseFile(QString filename)
         ret = true;//it is not breaking the plugin functionality, but could cause wrong decoding.
     }
 
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Start Creating Links";
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Start Creating Links";
     /* create PDU Ref links */
     foreach(DltFibexFrame *frame, framemapwithkey)
     {
@@ -486,23 +486,23 @@ bool NonverbosePlugin::parseFile(QString filename)
             }
         }
     }
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Finish Creating Links";
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Finish Creating Links";
 
     pdumap.clear();
 
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Size of framemapwithkey" << framemapwithkey.size();
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Size of framemap" << framemap.size();
-    qDebug() << NON_VERBOSE_PLUGIN_NAME << ": Size of pdumap" << pdumap.size();
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Size of framemapwithkey" << framemapwithkey.size();
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Size of framemap" << framemap.size();
+    qDebug() << MESSAGE_ID_PLUGIN_NAME << ": Size of pdumap" << pdumap.size();
 
     return ret;
 }
 
-bool NonverbosePlugin::saveConfig(QString /*filename*/)
+bool MessageIDPlugin::saveConfig(QString /*filename*/)
 {
     return true;
 }
 
-QStringList NonverbosePlugin::infoConfig()
+QStringList MessageIDPlugin::infoConfig()
 {
     QStringList list;
 
@@ -528,7 +528,7 @@ QStringList NonverbosePlugin::infoConfig()
     return list;
 }
 
-bool NonverbosePlugin::isMsg(QDltMsg &msg, int triggeredByUser)
+bool MessageIDPlugin::isMsg(QDltMsg &msg, int triggeredByUser)
 {
     Q_UNUSED(triggeredByUser)
 
@@ -553,7 +553,7 @@ bool NonverbosePlugin::isMsg(QDltMsg &msg, int triggeredByUser)
         return framemap.contains(idtext);
 }
 
-bool NonverbosePlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
+bool MessageIDPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
 {
     Q_UNUSED(triggeredByUser)
     int offset = 0;
@@ -659,24 +659,24 @@ bool NonverbosePlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     return true;
 }
 
-bool NonverbosePlugin::initControl(QDltControl *control)
+bool MessageIDPlugin::initControl(QDltControl *control)
 {
     dltControl = control;
 
     return true;
 }
 
-bool NonverbosePlugin::initConnections(QStringList)
+bool MessageIDPlugin::initConnections(QStringList)
 {
     return false;
 }
 
-bool NonverbosePlugin::controlMsg(int , QDltMsg &)
+bool MessageIDPlugin::controlMsg(int , QDltMsg &)
 {
     return false;
 }
 
-bool NonverbosePlugin::stateChanged(int index, QDltConnection::QDltConnectionState connectionState,QString hostname){
+bool MessageIDPlugin::stateChanged(int index, QDltConnection::QDltConnectionState connectionState,QString hostname){
 
     Q_UNUSED(index);
     Q_UNUSED(connectionState);
@@ -684,25 +684,25 @@ bool NonverbosePlugin::stateChanged(int index, QDltConnection::QDltConnectionSta
     return false;
 }
 
-bool NonverbosePlugin::autoscrollStateChanged(bool enabled)
+bool MessageIDPlugin::autoscrollStateChanged(bool enabled)
 {
     Q_UNUSED(enabled);
     return false;
 }
 
-void NonverbosePlugin::initMessageDecoder(QDltMessageDecoder* pMessageDecoder)
+void MessageIDPlugin::initMessageDecoder(QDltMessageDecoder* pMessageDecoder)
 {
     Q_UNUSED(pMessageDecoder);
 }
 
-void NonverbosePlugin::initMainTableView(QTableView* pTableView)
+void MessageIDPlugin::initMainTableView(QTableView* pTableView)
 {
     Q_UNUSED(pTableView);
 }
 
-void NonverbosePlugin::configurationChanged()
+void MessageIDPlugin::configurationChanged()
 {}
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-Q_EXPORT_PLUGIN2(nonverboseplugin, NonverbosePlugin);
+Q_EXPORT_PLUGIN2(messageidplugin, MessageIDPlugin);
 #endif
