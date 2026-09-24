@@ -7,12 +7,12 @@
  *  - FIBEX frame selection ONLY by received Message ID
  *  - Payload decoding starts at byte 9
  *  - Received Context ID = payload byte 8, bits 0..3
- *  - Received Log Level  = payload byte 8, bits 4..7
  *  - Expected Context ID is read from FIBEX CONTEXT_DESCRIPTION
  *    (e.g. "11-MISC" -> 11)
- *  - Expected Log Level is read from FIBEX MESSAGE_INFO
+ *  - Expected App ID is read from the FIBEX frame.
+ *  - Received App ID is read from the DLT trace message.
  *  - A warning argument is appended after the translated message when
- *    Context ID and/or Log Level do not match.
+ *    Context ID and/or App ID do not match.
  */
 
 #include <QtGui>
@@ -545,10 +545,8 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
 
     QByteArray payload = msg.getPayload();
 
-    // Read the received CID and Log Level BEFORE the normal decoding modifies
-    // message metadata.
+    // Read the received Context ID from byte 8, bits 0..3.
     int receivedContextId = -1;
-    int receivedLogLevel = -1;
 
     if (payload.size() > 8)
     {
@@ -556,11 +554,13 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
             static_cast<unsigned char>(payload.at(8)));
 
         receivedContextId = headerByte & 0x0F;
-        receivedLogLevel = (headerByte >> 4) & 0x0F;
     }
 
     int expectedContextId = frame->contextId;
-    int expectedLogLevel = static_cast<int>(frame->messageInfo);
+
+    // Read App IDs before the normal decoding may fill an empty APID.
+    QString expectedAppId = frame->appid;
+    QString receivedAppId = msg.getApid();
 
     /* Set message data */
     if (msg.getApid().isEmpty())
@@ -638,7 +638,7 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     }
 
     // ---------------------------------------------------------------------
-    // CID / Log-Level validation
+    // Context ID / App ID validation
     // ---------------------------------------------------------------------
 
     bool contextMismatch =
@@ -646,20 +646,20 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
         && (receivedContextId >= 0)
         && (expectedContextId != receivedContextId);
 
-    bool logLevelMismatch =
-        (receivedLogLevel >= 0)
-        && (expectedLogLevel != receivedLogLevel);
+    bool appIdMismatch =
+        !expectedAppId.isEmpty()
+        && (expectedAppId != receivedAppId);
 
     QString warning;
 
-    if (contextMismatch && logLevelMismatch)
+    if (contextMismatch && appIdMismatch)
     {
         warning = QString(
-            "[WARNING: exp.CID: %1 rec.CID: %2 / exp.LL: %3 rec.LL: %4]")
+            "[WARNING: exp.CID: %1 rec.CID: %2 / exp.Apid: %3 rec.Apid: %4]")
                       .arg(expectedContextId)
                       .arg(receivedContextId)
-                      .arg(expectedLogLevel)
-                      .arg(receivedLogLevel);
+                      .arg(expectedAppId)
+                      .arg(receivedAppId);
     }
     else if (contextMismatch)
     {
@@ -668,12 +668,12 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
                       .arg(expectedContextId)
                       .arg(receivedContextId);
     }
-    else if (logLevelMismatch)
+    else if (appIdMismatch)
     {
         warning = QString(
-            "[WARNING: exp.LL: %1 rec.LL: %2]")
-                      .arg(expectedLogLevel)
-                      .arg(receivedLogLevel);
+            "[WARNING: exp.Apid: %1 rec.Apid: %2]")
+                      .arg(expectedAppId)
+                      .arg(receivedAppId);
     }
 
     if (!warning.isEmpty())
