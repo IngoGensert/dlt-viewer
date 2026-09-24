@@ -655,7 +655,7 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     if (contextMismatch && appIdMismatch)
     {
         warning = QString(
-            "[WARNING: exp.CID: %1 rec.CID: %2 / exp.Apid: %3 rec.Apid: %4]")
+            " ... [WARNING: exp.CID: %1 rec.CID: %2 / exp.Apid: %3 rec.Apid: %4]")
                       .arg(expectedContextId)
                       .arg(receivedContextId)
                       .arg(expectedAppId)
@@ -664,14 +664,14 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
     else if (contextMismatch)
     {
         warning = QString(
-            "[WARNING: exp.CID: %1 rec.CID: %2]")
+            " ... [WARNING: exp.CID: %1 rec.CID: %2]")
                       .arg(expectedContextId)
                       .arg(receivedContextId);
     }
     else if (appIdMismatch)
     {
         warning = QString(
-            "[WARNING: exp.Apid: %1 rec.Apid: %2]")
+            " ... [WARNING: exp.Apid: %1 rec.Apid: %2]")
                       .arg(expectedAppId)
                       .arg(receivedAppId);
     }
