@@ -540,33 +540,16 @@ bool MessageIdPlugin::isMsg(QDltMsg &msg, int triggeredByUser)
 bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
 {
     Q_UNUSED(triggeredByUser)
-    int offset = 0;
 
-    if((msg.getMode() != QDltMsg::DltModeNonVerbose))
-    {
-        /* message is not a non-verbose message */
-        return false;
-    }
-    if((msg.getType() == QDltMsg::DltTypeControl))
-    {
-        /* message is a control message */
-        return false;
-    }
+    int offset = 9;
 
     QString idtext = QString("ID_%1").arg(msg.getMessageId());
-    DltFibexFrame *frame;
-    if(!msg.getApid().isEmpty() && !msg.getCtid().isEmpty())
-    {
-        // search in full key, if msg already contains AppId and CtId
-        frame = framemapwithkey.value(DltFibexKey(idtext,msg.getApid(),msg.getCtid()),0);
-    }
-    else
-    {
-        // search only for id
-        frame = framemap.value(idtext,0);
-    }
+
+    // Select FIBEX frame only by received Message ID
+    DltFibexFrame *frame = framemap.value(idtext, 0);
+
     if(!frame)
-            return false;
+        return false;
 
     /* set message data */
 
