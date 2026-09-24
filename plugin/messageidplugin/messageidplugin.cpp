@@ -204,6 +204,19 @@ bool MessageIdPlugin::parseFile(QString filename)
                 // Nothing to do.
             }
 
+            if (xml.name() == QString("VARI_NAME"))
+            {
+                if (pdu)
+                {
+                    QString variName = xml.readElementText();
+
+                    if (variName.compare("Dummy", Qt::CaseInsensitive) == 0)
+                    {
+                        pdu->isDummy = true;
+                    }
+                }
+            }
+
             if (xml.name() == QString("SIGNAL-REF"))
             {
                 if (pdu)
@@ -581,6 +594,13 @@ bool MessageIdPlugin::decodeMsg(QDltMsg &msg, int triggeredByUser)
         unsigned short length;
 
         DltFibexPdu *pdu = frame->pdureflist[i]->ref;
+
+        // Ignore legacy 5-byte DUMMY block.
+        // Do NOT increase offset.
+        if (pdu && pdu->isDummy && pdu->byteLength == 5)
+        {
+            continue;
+        }
 
         if (pdu)
         {
