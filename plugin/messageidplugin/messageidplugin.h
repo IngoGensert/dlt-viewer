@@ -17,7 +17,7 @@
 class DltFibexKey
 {
 public:
-    DltFibexKey(QString id,QString appid,QString ctid)
+    DltFibexKey(QString id, QString appid, QString ctid)
     {
         this->id = id;
         this->appid = appid;
@@ -35,7 +35,8 @@ public:
 inline bool operator==(const DltFibexKey &e1, const DltFibexKey &e2)
 {
     return (e1.id == e2.id)
-           && (e1.appid == e2.appid) && (e1.ctid == e2.ctid);
+           && (e1.appid == e2.appid)
+           && (e1.ctid == e2.ctid);
 }
 
 inline size_t qHash(const DltFibexKey &key)
@@ -46,7 +47,11 @@ inline size_t qHash(const DltFibexKey &key)
 class DltFibexPdu
 {
 public:
-    DltFibexPdu() { byteLength=0;typeInfo=0; }
+    DltFibexPdu()
+    {
+        byteLength = 0;
+        typeInfo = 0;
+    }
 
     QString id;
     QString description;
@@ -57,7 +62,10 @@ public:
 class DltFibexPduRef
 {
 public:
-    DltFibexPduRef() { ref = 0; }
+    DltFibexPduRef()
+    {
+        ref = 0;
+    }
 
     QString id;
     DltFibexPdu *ref;
@@ -68,12 +76,12 @@ class DltFibexFrame
 public:
     DltFibexFrame()
     {
-        byteLength=0;
-        messageType=0;
-        messageInfo=0;
-        contextId=-1;
-        pduRefCounter=0;
-    }    
+        byteLength = 0;
+        messageType = 0;
+        messageInfo = 0;
+        contextId = -1;
+        pduRefCounter = 0;
+    }
 
     QString id;
     QString filename;
@@ -82,6 +90,10 @@ public:
     int8_t messageInfo;
     QString appid;
     QString ctid;
+
+    // Numeric Context ID expected from FIBEX.
+    // -1 means: no numeric Context ID available.
+    int contextId;
 
     QList<DltFibexPduRef*> pdureflist;
     uint32_t pduRefCounter;
@@ -135,6 +147,10 @@ public:
     QHash<QString, DltFibexPdu *> pdumap;
     QHash<QString, DltFibexFrame *> framemap;
     QHash<DltFibexKey, DltFibexFrame *> framemapwithkey;
+
+    // Mapping from FIBEX Context ID name (e.g. "MISC")
+    // to numeric Context ID (e.g. 11).
+    QHash<QString, int> contextIdMap;
 
 private:
     bool parseFile(QString filename);
