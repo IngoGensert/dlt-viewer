@@ -1,4 +1,4 @@
-name: Build Build Message ID Plugin
+name: Build Message ID Plugin
 
 on:
   workflow_dispatch:
