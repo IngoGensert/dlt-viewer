@@ -71,8 +71,9 @@ public:
         byteLength=0;
         messageType=0;
         messageInfo=0;
+        contextId=-1;
         pduRefCounter=0;
-    }
+    }    
 
     QString id;
     QString filename;
