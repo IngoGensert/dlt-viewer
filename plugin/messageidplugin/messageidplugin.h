@@ -51,12 +51,14 @@ public:
     {
         byteLength = 0;
         typeInfo = 0;
+        isDummy = false;
     }
 
     QString id;
     QString description;
     int32_t byteLength;
     uint32_t typeInfo;
+    bool isDummy;
 };
 
 class DltFibexPduRef
